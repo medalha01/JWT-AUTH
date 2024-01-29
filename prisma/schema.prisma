@@ -1,15 +1,42 @@
-generator client {
-  provider = "prisma-client-js"
-  output   = "./prisma/client"
-}
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 datasource db {
   provider = "mongodb"
   url      = env("DATABASE_URL")
 }
 
+generator client {
+  provider = "prisma-client-js"
+}
+
 model User {
-  id       String  @id @default(auto()) @map("_id") @db.ObjectId
-  username String  @unique
+  id       String    @id @default(auto()) @map("_id") @db.ObjectId
+  username     String
+  email    String    @unique
   password String
+  auctions Auction[]
+  bids     Bid[]
+}
+
+model Auction {
+  id               String   @id @default(auto()) @map("_id") @db.ObjectId
+  brand            String
+  model            String
+  year             Int
+  startingBid      Float
+  auctionStartDate DateTime
+  auctionEndDate   DateTime
+  creator          User     @relation(fields: [creatorId], references: [id])
+  creatorId        String
+  bids             Bid[]
+}
+
+model Bid {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  amount    Float
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  Auction   Auction? @relation(fields: [auctionId], references: [id])
+  auctionId String?  @db.ObjectId
 }
