@@ -38,7 +38,7 @@ export class AuthService {
   }
 
   async validateUser(loginDto: LoginDto): Promise<any> {
-    const { email, password } = loginDto;
+    const { email, password } = loginDto; // Add more tests for failure scenarios or edge cases
 
     const user = await this.getUser(email);
     if (user && (await bcrypt.compare(password, user.password))) {

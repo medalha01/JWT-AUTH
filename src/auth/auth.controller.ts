@@ -12,6 +12,7 @@ import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { LocalAuthGuard } from './local-auth.guard';
 import { RegisterDto, LoginDto } from '../dto/auth.dto';
+import { RateLimit } from 'nestjs-rate-limiter';
 
 // Define a controller with the base route path 'auth'
 @ApiTags('auth')
@@ -37,6 +38,12 @@ export class AuthController {
 
   // Use the LocalAuthGuard to authenticate the user and define an endpoint to log in a user
   @UseGuards(LocalAuthGuard)
+  @RateLimit({
+    keyPrefix: 'login',
+    points: 5,
+    duration: 60,
+    errorMessage: 'Accounts cannot acessed more than 5 times in per minute',
+  })
   @Post('login')
   @ApiOperation({ summary: 'Log in a user' })
   @ApiResponse({ status: 200, description: 'User successfully logged in.' })
