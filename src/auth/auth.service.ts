@@ -49,21 +49,29 @@ export class AuthService {
     return null;
   }
   async login(loginDto: LoginDto) {
-    this.logger.debug(`Logging in user ${loginDto}`);
+    this.logger.debug(`Logging in user ${JSON.stringify(loginDto)}`);
 
     const user = await this.getUser(loginDto.email);
-    if (!user) {
-      this.logger.warn(
-        `Login failed: User not found for email ${loginDto.email}`,
-      );
+    try {
+      if (!user) {
+        this.logger.warn(
+          `Login failed: User not found for email ${loginDto.email}`,
+        );
+        throw new HttpException(
+          'Authentication failed',
+          HttpStatus.UNAUTHORIZED,
+        );
+      }
+
+      const payload = { email: user.email, sub: user.id };
+      const token = this.jwtService.sign(payload);
+      this.logger.debug(`User ${user.email} authenticated successfully`);
+
+      return { access_token: token };
+    } catch (e) {
+      this.logger.error(`Login failed: ${e.message}`);
       throw new HttpException('Authentication failed', HttpStatus.UNAUTHORIZED);
     }
-
-    const payload = { email: user.email, sub: user.id };
-    const token = this.jwtService.sign(payload);
-    this.logger.debug(`User ${user.email} authenticated successfully`);
-
-    return { access_token: token };
   }
 
   private async getUser(email: string) {
